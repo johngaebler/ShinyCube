@@ -1,0 +1,5 @@
+.Rhistory
+.RData
+.Rproj.user/
+scryfall_cards.rds
+*.qs

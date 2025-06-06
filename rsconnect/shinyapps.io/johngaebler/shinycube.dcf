@@ -1,0 +1,10 @@
+name: shinycube
+title:
+username: johngaebler
+account: johngaebler
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 14823005
+bundleId: 10411040
+url: https://johngaebler.shinyapps.io/shinycube/
+version: 1
