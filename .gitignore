@@ -3,3 +3,7 @@
 .Rproj.user/
 scryfall_cards.rds
 *.qs
+cards_part1.rds
+cards_part2.rds
+cards_part3.rds
+cards_part4.rds
