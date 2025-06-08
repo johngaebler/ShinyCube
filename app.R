@@ -20,9 +20,9 @@ library(purrr)
 
 #setup for the app, data reading, table prep
 #loading data
-decks <- read.csv("Cube_Stats - Deck Info (13).csv")
+decks <- read.csv("Cube_Stats - Deck Info (14).csv")
 decklists <- read.csv("Cube_Stats - All Decklists (3).csv", na.strings = c("", "NA"), check.names = FALSE)
-game_log <- read.csv("Cube_Stats - game_log (3).csv", stringsAsFactors = F)
+game_log <- read.csv("Cube_Stats - game_log (7).csv", stringsAsFactors = F)
 players <- read.csv("Cube_Stats - Players (1).csv", stringsAsFactors =F)
 dir <- getwd()
 decks$Date <- as.Date(decks$Date, format = "%m/%d/%y")
@@ -44,8 +44,6 @@ binary_matrix <- long_decklists %>%
 decks$Deck.ID <- sub("^", "X", decks$Deck.ID)
 
 scryfall_data <- readRDS("scryfall_cards_trimmed.rds")
-scryfall_data <- scryfall_data %>% 
-  select(name, cmc, type_line, mana_cost, image_url, oracle_text)
 card_meta <- scryfall_data %>%
   dplyr::filter(name %in% colnames(binary_matrix)) %>%
   dplyr::select(name, type_line)
@@ -92,7 +90,6 @@ get_player_media <- function(player_name) {
 
 ui <- fluidPage(theme = shinytheme("slate"),
                 useShinyjs(),
-                tags$head(
                   tags$head(
                     tags$style(HTML("
                       .dataTables_wrapper {
@@ -120,9 +117,20 @@ ui <- fluidPage(theme = shinytheme("slate"),
                         background-color: #555 !important;
                         color: #fff !important;
                       }
+                      #background-image {
+                        position: fixed;
+                        top: 0; left: 0;
+                        width: 100vw;
+                        height: 100vh;
+                        background-image: url('backgrounds/mindovermatter.jpg');
+                        background-size: cover;
+                        background-position: center;
+                        opacity: 0.3; /* Adjust transparency here */
+                        z-index: -1;
+                      }
                     "))
-                  )
                 ),
+                div(id = "background-image"),
                 titlePanel("Cube Stats!!!  >:)"),
                 
                 tabsetPanel(
@@ -184,6 +192,7 @@ ui <- fluidPage(theme = shinytheme("slate"),
                   )
                   
                 )
+                
 )
 
 
@@ -425,7 +434,10 @@ server <- function(input, output, session) {
     deck_info <- scryfall_data %>%
       filter(name %in% card_names, !grepl("Land", type_line, ignore.case = TRUE)) %>%
       distinct(name, .keep_all = TRUE)  # Deduping here
-
+    
+    deck_info <- deck_info %>%
+      mutate(cmc = as.numeric(cmc)) %>%
+      filter(!is.na(cmc), cmc >= 0, cmc <= 12)
     
     hist(deck_info$cmc, breaks = 0:10, col = "steelblue",
          main = "Mana Curve", xlab = "Converted Mana Cost (CMC)", ylab = "Count")
@@ -446,7 +458,7 @@ server <- function(input, output, session) {
       distinct(name, .keep_all = TRUE)
     card_data <- card_table %>%
       left_join(scryfall_deduped, by = "name") %>%
-      select(name, mana_cost, type_line, count, image_url)
+      select(name, mana_cost, cmc, type_line, image_url)
     
     # Add custom HTML hover tooltips
     card_data$tooltip <- paste0(
@@ -456,7 +468,7 @@ server <- function(input, output, session) {
     
     # Render as datatable with image on hover
     datatable(
-      card_data[, c("name", "mana_cost", "type_line", "count", "image_url")],
+      card_data[, c("name", "mana_cost", "cmc", "type_line", "image_url")],
       escape = FALSE,
       rownames = FALSE,
       options = list(

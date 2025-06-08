@@ -18,9 +18,9 @@ library(shinyjs)
 library(DT)
 library(purrr)
 
-decks <- read.csv("Cube_Stats - Deck Info (13).csv")
+decks <- read.csv("Cube_Stats - Deck Info (14).csv")
 decklists <- read.csv("Cube_Stats - All Decklists (3).csv", na.strings = c("", "NA"), check.names = FALSE)
-game_log <- read.csv("Cube_Stats - game_log (3).csv", stringsAsFactors = F)
+game_log <- read.csv("Cube_Stats - game_log (7).csv", stringsAsFactors = F)
 players <- read.csv("Cube_Stats - Players (1).csv", stringsAsFactors =F)
 dir <- getwd()
 decks$Date <- as.Date(decks$Date, format = "%m/%d/%y")
@@ -62,12 +62,8 @@ decks$Deck.ID <- sub("^", "X", decks$Deck.ID)
 # saveRDS(card_chunks[[2]], "cards_part2.rds")
 # saveRDS(card_chunks[[3]], "cards_part3.rds")
 # saveRDS(card_chunks[[4]], "cards_part4.rds")
-scryfall_data <- bind_rows(
-  readRDS("cards_part1.rds"),
-  readRDS("cards_part2.rds"),
-  readRDS("cards_part3.rds"),
-  readRDS("cards_part4.rds")
-)
+scryfall_data <- readRDS("C:\\scryfall_cards.rds")
+
 
 used_card_names <- long_decklists %>%
   distinct(card) %>%
@@ -76,9 +72,11 @@ used_card_names <- long_decklists %>%
 # Step 2: Filter the full scryfall data
 scryfall_trimmed <- scryfall_data %>%
   filter(name %in% used_card_names)
-
+scryfall_trimmed$image_url <- scryfall_trimmed$image_uris$normal
+scryfall_trimmed <- scryfall_trimmed %>% 
+  select(name, cmc, type_line, mana_cost, image_url, oracle_text)
 # Step 3: Save this trimmed version
-#saveRDS(scryfall_trimmed, "scryfall_cards_trimmed.rds")
+saveRDS(scryfall_trimmed, "scryfall_cards_trimmed.rds")
 # scryfall_data <- scryfall_data %>%
 #   mutate(image_url = normal)
 # Filter Scryfall cards to only those used in your cube
@@ -179,7 +177,7 @@ colorComboWinrates <- readRDS("combo_winrates.rds")
 colorWinrates <- as.data.frame(sapply(c('W','U','B','R','G'), colorWinrate))
 colorWinrates <- tibble::rownames_to_column(colorWinrates, "VALUE")
 colorWinrates$GamesPlayed <- sapply(c('W','U','B','R','G'), colorGames)
-olorWinrates$Colors <- c('White', 'Blue','Black','Red','Green')
+colorWinrates$Colors <- c('White', 'Blue','Black','Red','Green')
 colnames(colorWinrates) <- c('Color', 'Winrate', 'GamesPlayed')
 saveRDS(colorWinrates, "color_winrates.rds")
 colorWinrates <- readRDS("color_winrates.rds")
