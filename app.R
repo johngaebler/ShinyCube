@@ -178,6 +178,12 @@ ui <- fluidPage(theme = shinytheme("slate"),
                   tabPanel("Deck Explorer",
                            sidebarLayout(
                              sidebarPanel(
+                               selectInput(
+                                 inputId = "deck_sort_order",
+                                 label = "Sort decks by:",
+                                 choices = c("Winrate" = "winrate", "Player" = "player", "Date Played" = "date"),
+                                 selected = "winrate"
+                               ),
                                selectInput("selected_deck", "Select Deck:", choices = NULL)
                              ),
                              mainPanel(
@@ -389,15 +395,40 @@ server <- function(input, output, session) {
       mutate(label = paste0(PlayerName, ": ", Date, " (", winrate, "% winrate)"))
   })
   
+  #observe({
+  #  choices <- deck_winrates() %>%
+  #    arrange(desc(winrate))  # highest winrate first
+  #  
+  #  updateSelectInput(
+  #    inputId = "selected_deck",
+  #    choices = setNames(choices$deck, choices$label)
+  #  )
+  #})
+  
   observe({
-    choices <- deck_winrates() %>%
-      arrange(desc(winrate))  # highest winrate first
+    req(deck_winrates)  # Ensure the data is loaded
     
+    # Sort based on user-selected criteria
+    sorted_decks <- switch(
+      input$deck_sort_order,
+      "winrate" = deck_winrates() %>% arrange(desc(winrate)),
+      "player" = deck_winrates() %>% arrange(PlayerName),
+      "date" = deck_winrates() %>% arrange(desc(Date)),
+      deck_winrates()
+    )
+    
+    # Create readable labels for the dropdown
+    deck_labels <- 
+      sorted_decks$label
+    
+    # Update the dropdown
     updateSelectInput(
+      session,
       inputId = "selected_deck",
-      choices = setNames(choices$deck, choices$label)
+      choices = setNames(sorted_decks$deck, deck_labels)
     )
   })
+  
   
   output$deck_stats <- renderUI({
     req(input$selected_deck)
