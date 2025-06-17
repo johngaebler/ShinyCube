@@ -83,7 +83,7 @@ get_player_media <- function(player_name) {
     }
   }
   
-  return(NULL)  # fallback if nothing found
+  return(NULL)  #null if nothing found
 }
 
 ## ==== Begin UI and Server Functions ==== ##
@@ -206,10 +206,9 @@ ui <- fluidPage(theme = shinytheme("slate"),
 server <- function(input, output, session) {
   scryfall_cache <- reactiveValues(data = list())
   #player logic
-  # Assume players and game_log are dataframes already loaded
   updateSelectInput(session, "selected_player", choices = unique(players$Name))
   
-  # Reactive: Get selected player's ID
+  # Reactive: Get selected player's ID for use pretty much everywhere else on this page
   selected_player_id <- reactive({
     players %>% filter(Name == input$selected_player) %>% pull(PlayerId)
   })
@@ -258,7 +257,7 @@ server <- function(input, output, session) {
              win = (player1 == pid & result == 1) | (player2 == pid & result == 2)) %>%
       group_by(opponent) %>%
       dplyr::summarise(wins = sum(win), total = n(), winrate = wins / total) %>%
-      filter(total >= 2) %>%  # Optional: Only include opponents played multiple times
+      filter(total >= 2) %>%  # Only include opponents played multiple times, otherwise whats the point
       arrange(winrate)
     
     if (nrow(matchups) == 0) {
@@ -317,19 +316,18 @@ server <- function(input, output, session) {
     # Count card frequencies
     card_counts <- colSums(deck_subset)
     
-    # Filter to nonland cards only
+    # Filter to nonland cards only, is this superfluous since i do this above??
     card_counts <- card_counts[names(card_counts) %in% nonland_cards]
     
     if (length(card_counts) == 0 || all(card_counts == 0)) {
       return("No nonland cards found in winning decks.")
     }
     
-    # Get top 3 cards
     top_cards <- names(sort(card_counts, decreasing = TRUE))[1:5]
     
     # Generate image tags
     card_ui <- lapply(top_cards, function(card_name) {
-      # Check cache
+      # Check cache for speeeeeeeed
       if (!card_name %in% names(scryfall_cache$data)) {
         query <- URLencode(card_name, reserved = TRUE)
         api_url <- paste0("https://api.scryfall.com/cards/named?exact=", query)
@@ -338,13 +336,13 @@ server <- function(input, output, session) {
           jsonlite::fromJSON(api_url)
         }, error = function(e) NULL)
         
-        # Cache the result
+        # Cache result
         scryfall_cache$data[[card_name]] <- card_data
       } else {
         card_data <- scryfall_cache$data[[card_name]]
       }
       
-      # Render card if valid
+      # Render card if thers a valid image available
       if (!is.null(card_data) && !is.null(card_data$image_uris)) {
         tags$div(style = "display: inline-block; margin-right: 15px;",
                  strong(card_name),
@@ -406,7 +404,7 @@ server <- function(input, output, session) {
   #})
   
   observe({
-    req(deck_winrates)  # Ensure the data is loaded
+    req(deck_winrates)  #n breaks without this line in here idk why 
     
     # Sort based on user-selected criteria
     sorted_decks <- switch(
@@ -417,11 +415,9 @@ server <- function(input, output, session) {
       deck_winrates()
     )
     
-    # Create readable labels for the dropdown
     deck_labels <- 
       sorted_decks$label
     
-    # Update the dropdown
     updateSelectInput(
       session,
       inputId = "selected_deck",
@@ -436,7 +432,6 @@ server <- function(input, output, session) {
     stats <- deck_winrates() %>%
       filter(deck == input$selected_deck)
     
-    # Get player name
     deck_player <- decks %>%
       filter(deckID == input$selected_deck) %>%
       pull(PlayerName) %>%
@@ -480,11 +475,10 @@ server <- function(input, output, session) {
     card_names <- decklists[[input$selected_deck]]
     card_names <- na.omit(card_names)
     
-    # Get card counts
     card_table <- as.data.frame(table(card_names))
     colnames(card_table) <- c("name", "count")
     
-    # Join with Scryfall image and details
+    # Join with Scryfall image and details, avoid bad joins here !!!!!
     scryfall_deduped <- scryfall_data %>%
       distinct(name, .keep_all = TRUE)
     card_data <- card_table %>%
