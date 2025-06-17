@@ -18,6 +18,7 @@ library(shinyjs)
 library(DT)
 library(purrr)
 
+# read in raw csv data
 decks <- read.csv("Cube_Stats - Deck Info (15).csv")
 decklists <- read.csv("Cube_Stats - All Decklists (4).csv", na.strings = c("", "NA"), check.names = FALSE)
 game_log <- read.csv("Cube_Stats - game_log (8).csv", stringsAsFactors = F)
@@ -41,7 +42,8 @@ binary_matrix <- long_decklists %>%
 #data cleaning
 decks$Deck.ID <- sub("^", "X", decks$Deck.ID)
 
-#getting all of the scryfall data
+#getting all of the scryfall data, run this if you havent yet to initialize scryfall data
+
 # 1. Get metadata for Scryfall bulk data files
 #bulk_meta <- fromJSON("https://api.scryfall.com/bulk-data")
 
@@ -62,6 +64,8 @@ decks$Deck.ID <- sub("^", "X", decks$Deck.ID)
 # saveRDS(card_chunks[[2]], "cards_part2.rds")
 # saveRDS(card_chunks[[3]], "cards_part3.rds")
 # saveRDS(card_chunks[[4]], "cards_part4.rds")
+
+#once it is all saved, you can load it like this 
 scryfall_data <- readRDS("C:\\scryfall_cards.rds")
 
 
