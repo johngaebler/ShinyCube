@@ -20,10 +20,10 @@ library(purrr)
 
 #setup for the app, data reading, table prep
 #loading data
-decks <- read.csv("Cube_Stats - Deck Info (15).csv")
-decklists <- read.csv("Cube_Stats - All Decklists (4).csv", na.strings = c("", "NA"), check.names = FALSE)
-game_log <- read.csv("Cube_Stats - game_log (8).csv", stringsAsFactors = F)
-players <- read.csv("Cube_Stats - Players (1).csv", stringsAsFactors =F)
+decks <- read.csv("Cube_Stats - Deck Info.csv")
+decklists <- read.csv("Cube_Stats - All Decklists.csv", na.strings = c("", "NA"), check.names = FALSE)
+game_log <- read.csv("Cube_Stats - game_log.csv", stringsAsFactors = F)
+players <- read.csv("Cube_Stats - Players.csv", stringsAsFactors =F)
 dir <- getwd()
 decks$Date <- as.Date(decks$Date, format = "%m/%d/%y")
 
@@ -62,7 +62,7 @@ colorComboWinrates <- readRDS("combo_winrates.rds")
 colorWinrates <- readRDS("color_winrates.rds")
 
 ### Going a step further, create unified result structure
-excluded_names <- c( "Sky", "Gretchen", "Tini", "Shane", "Zeth", "Alex", "Tay","Mack ", "Matt")
+excluded_names <- c( "Sky", "Gretchen", "Tini", "Shane", "Zeth", "Alex", "Tay","Mack ")
 
 heatmap_data <- readRDS("heatmap_data.rds")
 colnames(heatmap_data) <- c("Player", "Opponent", "Winrate")
@@ -85,6 +85,7 @@ get_player_media <- function(player_name) {
   
   return(NULL)  #null if nothing found
 }
+
 
 ## ==== Begin UI and Server Functions ==== ##
 
@@ -329,7 +330,8 @@ server <- function(input, output, session) {
     card_ui <- lapply(top_cards, function(card_name) {
       # Check cache for speeeeeeeed
       if (!card_name %in% names(scryfall_cache$data)) {
-        query <- URLencode(card_name, reserved = TRUE)
+        full_card_name <- scryfall_data$name[grep(card_name, scryfall_data$name)][1]
+        query <- URLencode(full_card_name, reserved = TRUE)
         api_url <- paste0("https://api.scryfall.com/cards/named?exact=", query)
         
         card_data <- tryCatch({
@@ -463,9 +465,9 @@ server <- function(input, output, session) {
     
     deck_info <- deck_info %>%
       mutate(cmc = as.numeric(cmc)) %>%
-      filter(!is.na(cmc), cmc >= 0, cmc <= 12)
+      filter(!is.na(cmc), cmc >= 0, cmc <= 15)
     
-    hist(deck_info$cmc, breaks = 0:10, col = "steelblue",
+    hist(deck_info$cmc, breaks = 0:max(deck_info$cmc), col = "steelblue",
          main = "Mana Curve", xlab = "Converted Mana Cost (CMC)", ylab = "Count")
   })
   

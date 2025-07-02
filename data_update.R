@@ -17,12 +17,13 @@ library(jsonlite)
 library(shinyjs)
 library(DT)
 library(purrr)
+library(stringr)
 
 # read in raw csv data
-decks <- read.csv("Cube_Stats - Deck Info (15).csv")
-decklists <- read.csv("Cube_Stats - All Decklists (4).csv", na.strings = c("", "NA"), check.names = FALSE)
-game_log <- read.csv("Cube_Stats - game_log (8).csv", stringsAsFactors = F)
-players <- read.csv("Cube_Stats - Players (1).csv", stringsAsFactors =F)
+decks <- read.csv("Cube_Stats - Deck Info.csv")
+decklists <- read.csv("Cube_Stats - All Decklists.csv", na.strings = c("", "NA"), check.names = FALSE)
+game_log <- read.csv("Cube_Stats - game_log.csv", stringsAsFactors = F)
+players <- read.csv("Cube_Stats - Players.csv", stringsAsFactors =F)
 dir <- getwd()
 decks$Date <- as.Date(decks$Date, format = "%m/%d/%y")
 
@@ -57,13 +58,13 @@ decks$Deck.ID <- sub("^", "X", decks$Deck.ID)
 
 # Optional: save to local RDS to avoid downloading every time
 #saveRDS(all_cards, "scryfall_cards.rds")
-# scryfall_data <- readRDS("scryfall_cards.rds")
-# scryfall_data$image_url <- scryfall_data$image_uris$normal
-# card_chunks <- split(scryfall_data, ceiling(seq_len(nrow(scryfall_data)) / 35000))
-# saveRDS(card_chunks[[1]], "cards_part1.rds")
-# saveRDS(card_chunks[[2]], "cards_part2.rds")
-# saveRDS(card_chunks[[3]], "cards_part3.rds")
-# saveRDS(card_chunks[[4]], "cards_part4.rds")
+#scryfall_data <- readRDS("C:\\scryfall_cards.rds")
+#scryfall_data$image_url <- scryfall_data$image_uris$normal
+#card_chunks <- split(scryfall_data, ceiling(seq_len(nrow(scryfall_data)) / 35000))
+#saveRDS(card_chunks[[1]], "cards_part1.rds")
+#saveRDS(card_chunks[[2]], "cards_part2.rds")
+#saveRDS(card_chunks[[3]], "cards_part3.rds")
+#saveRDS(card_chunks[[4]], "cards_part4.rds")
 
 #once it is all saved, you can load it like this 
 scryfall_data <- readRDS("C:\\scryfall_cards.rds")
@@ -74,8 +75,11 @@ used_card_names <- long_decklists %>%
   pull(card)
 
 # Step 2: Filter the full scryfall data
+pattern <- paste0("\\Q", used_card_names, "\\E")
+pattern <- paste(pattern, collapse = "|")
+
 scryfall_trimmed <- scryfall_data %>%
-  filter(name %in% used_card_names)
+  filter(str_detect(name, pattern))
 scryfall_trimmed$image_url <- scryfall_trimmed$image_uris$normal
 scryfall_trimmed <- scryfall_trimmed %>% 
   select(name, cmc, type_line, mana_cost, image_url, oracle_text)
@@ -187,7 +191,7 @@ saveRDS(colorWinrates, "color_winrates.rds")
 colorWinrates <- readRDS("color_winrates.rds")
 
 ### Going a step further, create unified result structure
-excluded_names <- c( "Sky", "Gretchen", "Tini", "Shane", "Zeth", "Alex", "Tay","Mack ", "Matt")
+excluded_names <- c( "Sky", "Gretchen", "Tini", "Shane", "Zeth", "Alex", "Tay","Mack ")
 matches_long <- game_log %>%
   mutate(
     winner_id = case_when(
