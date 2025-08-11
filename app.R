@@ -330,8 +330,9 @@ server <- function(input, output, session) {
     card_ui <- lapply(top_cards, function(card_name) {
       # Check cache for speeeeeeeed
       if (!card_name %in% names(scryfall_cache$data)) {
-        full_card_name <- scryfall_data$name[grep(card_name, scryfall_data$name)][1]
-        query <- URLencode(full_card_name, reserved = TRUE)
+        #full_card_name <- scryfall_data$name[grep(card_name, scryfall_data$name)][1]
+        #query <- URLencode(full_card_name, reserved = TRUE)
+        query <- URLencode(card_name, reserved = TRUE)
         api_url <- paste0("https://api.scryfall.com/cards/named?exact=", query)
         
         card_data <- tryCatch({
