@@ -18,6 +18,8 @@ library(shinyjs)
 library(DT)
 library(purrr)
 library(stringr)
+library(Matrix)
+library(glmnet)
 
 # read in raw csv data
 decks <- read.csv("Cube_Stats - Deck Info.csv")
@@ -46,20 +48,36 @@ decks$Deck.ID <- sub("^", "X", decks$Deck.ID)
 #getting all of the scryfall data, run this if you havent yet to initialize scryfall data
 
 # 1. Get metadata for Scryfall bulk data files
-#bulk_meta <- fromJSON("https://api.scryfall.com/bulk-data")
-
-# 2. Get the download URL for the "default_cards" bulk list
-#bulk_url <- bulk_meta$data %>%
-#  dplyr::filter(type == "default_cards") %>%
-#  dplyr::pull(download_uri)
+# bulk_meta <- fromJSON("https://api.scryfall.com/bulk-data")
+# 
+# # 2. Get the download URL for the "default_cards" bulk list
+# bulk_url <- bulk_meta$data %>%
+#   dplyr::filter(type == "default_cards") %>%
+#   dplyr::pull(download_uri)
 
 # 3. Download the full card list (~40MB)
 #all_cards <- fromJSON(bulk_url)
+#fetch data for cards not showing an image
+no_mana <- scryfall_trimmed[is.na(scryfall_trimmed$mana_cost) & 
+                                    scryfall_trimmed$cmc > 0 ,]
+lapply(na.omit(no_mana$id), function(x) {
+  data <- fromJSON(paste0("https://api.scryfall.com/cards/", x))
+  #print(data$card_faces$image_uris$normal[1])
+  value <- data$card_faces$mana_cost[1]
+
+  scryfall_trimmed$mana_cost[scryfall_trimmed$id == data$id] <<- value
+
+
+})
+
+data <- fromJSON(paste0("https://api.scryfall.com/cards/", "6897514f-e396-46d6-91e3-158366c741bb"))
+print(data$card_faces$image_uris$normal[1])
 
 # Optional: save to local RDS to avoid downloading every time
-#saveRDS(all_cards, "scryfall_cards.rds")
-#scryfall_data <- readRDS("C:\\scryfall_cards.rds")
+#saveRDS(scryfall_data, "C:\\scryfall_cards.rds")
+scryfall_data <- readRDS("C:\\scryfall_cards.rds")
 #scryfall_data$image_url <- scryfall_data$image_uris$normal
+no_image <- scryfall_data[is.na(scryfall_data$image_url),]
 #card_chunks <- split(scryfall_data, ceiling(seq_len(nrow(scryfall_data)) / 35000))
 #saveRDS(card_chunks[[1]], "cards_part1.rds")
 #saveRDS(card_chunks[[2]], "cards_part2.rds")
@@ -67,22 +85,25 @@ decks$Deck.ID <- sub("^", "X", decks$Deck.ID)
 #saveRDS(card_chunks[[4]], "cards_part4.rds")
 
 #once it is all saved, you can load it like this 
-scryfall_data <- readRDS("C:\\scryfall_cards.rds")
+# scryfall_data <- readRDS("C:\\scryfall_cards.rds")
 
 
 used_card_names <- long_decklists %>%
   distinct(card) %>%
   pull(card)
-
-# Step 2: Filter the full scryfall data
+# 
+# # Step 2: Filter the full scryfall data
 pattern <- paste0("\\Q", used_card_names, "\\E")
 pattern <- paste(pattern, collapse = "|")
 
 scryfall_trimmed <- scryfall_data %>%
   filter(str_detect(name, pattern))
-scryfall_trimmed$image_url <- scryfall_trimmed$image_uris$normal
-scryfall_trimmed <- scryfall_trimmed %>% 
-  select(name, cmc, type_line, mana_cost, image_url, oracle_text)
+no_image <- scryfall_trimmed[is.na(scryfall_trimmed$image_url),]
+# scryfall_trimmed$image_url <- scryfall_trimmed$image_uris$normal
+scryfall_trimmed <- scryfall_trimmed %>%
+  select(id, name, cmc, type_line, mana_cost, image_url, oracle_text)
+no_image <- scryfall_trimmed[is.na(scryfall_trimmed$image_url),]
+
 # Step 3: Save this trimmed version
 saveRDS(scryfall_trimmed, "scryfall_cards_trimmed.rds")
 # scryfall_data <- scryfall_data %>%
@@ -93,6 +114,13 @@ card_meta <- scryfall_data %>%
   dplyr::filter(name %in% colnames(binary_matrix)) %>%
   dplyr::select(name, type_line)
 
+scryfall_data <- readRDS("scryfall_cards_trimmed.rds")
+
+scryfall_lookup <- scryfall_data %>%
+  mutate(name = str_trim(str_extract(name, "^[^/]+"))) %>%
+  distinct(name, .keep_all = TRUE) %>%
+  select(name, mana_cost, cmc, type_line, image_url)
+saveRDS(scryfall_lookup, "scryfall_lookup.rds")
 # Extract nonland card names
 nonland_cards <- card_meta %>%
   filter(!grepl("\\bLand\\b", type_line, ignore.case = TRUE)) %>%
@@ -332,3 +360,197 @@ filtered_matchups <- all_matchups %>%
   )
 saveRDS(filtered_matchups, "filtered_matchups.rds")
 filtered_matchups <- readRDS("filtered_matchups.rds")
+
+game_log2 <- game_log %>%
+  transmute(
+    id,
+    deck1 = as.character(deck1),
+    deck2 = as.character(deck2),
+    deck1_win = (result == 1)
+  )
+saveRDS(game_log2, "game_log2.rds")
+# Long deck->card map from your binary_matrix
+deck_cards <- binary_matrix %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column("deckId") %>%
+  pivot_longer(-deckId, names_to = "card_name", values_to = "present") %>%
+  filter(present == 1) %>%
+  distinct(deckId = as.character(deckId), card_name)
+
+# Defensive: dedupe any accidental duplicate card rows per deck
+deck_cards <- deck_cards %>% distinct(deckId, card_name)
+
+# Build a minimal scryfall lookup with "front face" names and image URLs
+# (works for double-faced cards like "Front // Back")
+
+saveRDS(deck_cards, "deck_cards.rds")
+
+# ## Card level analysis >:)
+# # 1) Deck -> Card presence (unique pairs)
+# deck_cards <- binary_matrix %>%
+#   as.data.frame() %>%
+#   rownames_to_column("deckId") %>%
+#   pivot_longer(-deckId, names_to = "card_name", values_to = "present") %>%
+#   filter(present == 1) %>%
+#   distinct(deckId = as.character(deckId), card_name)
+# 
+# # 2) Expand games to "card appearances by side"
+# cards_deck1 <- game_log2 %>%
+#   inner_join(deck_cards, by = c("deck1" = "deckId")) %>%
+#   transmute(card_name, is_win = deck1_win)
+# 
+# cards_deck2 <- game_log2 %>%
+#   inner_join(deck_cards, by = c("deck2" = "deckId")) %>%
+#   transmute(card_name, is_win = !deck1_win)
+# 
+# # 3) Per-card winrate (across both sides)
+# card_winrate <- bind_rows(cards_deck1, cards_deck2) %>%
+#   group_by(card_name) %>%
+#   summarise(
+#     games_with_card = n(),
+#     wins_with_card  = sum(is_win),
+#     winrate_with_card = wins_with_card / games_with_card,
+#     .groups = "drop"
+#   )
+# # 0) Clean game log
+# game_log2 <- game_log %>%
+#   transmute(
+#     id,
+#     deck1 = as.character(deck1),
+#     deck2 = as.character(deck2),
+#     deck1_win = (result == 1)
+#   )
+# 
+# # 1) Map each deckId -> vector of cards it contains
+# stopifnot(identical(rownames(binary_matrix), as.character(rownames(binary_matrix))))
+# all_cards <- colnames(binary_matrix)
+# 
+# deck_to_cards <- apply(binary_matrix, 1, function(row) names(which(row == 1)))
+# # deck_to_cards is a named list; names are deckIds
+# 
+# # 2) Build sparse design: for each game and each card:
+# #    +1 if card is in deck1 only, -1 if in deck2 only, 0 if in both or neither
+# card_index <- setNames(seq_along(all_cards), all_cards)
+# 
+# make_row <- function(cards1, cards2) {
+#   if (is.null(cards1)) cards1 <- character(0)
+#   if (is.null(cards2)) cards2 <- character(0)
+#   both   <- intersect(cards1, cards2)
+#   only1  <- setdiff(cards1, both)
+#   only2  <- setdiff(cards2, both)
+#   idx    <- c(card_index[only1], card_index[only2])
+#   vals   <- c(rep.int( 1L, length(only1)),
+#               rep.int(-1L, length(only2)))
+#   list(idx = as.integer(idx), vals = as.numeric(vals))
+# }
+# 
+# n <- nrow(game_log2)
+# p <- length(all_cards)
+# 
+# # Preallocate i, j, x for a sparseMatrix in triplet form
+# rows_list <- vector("list", n)
+# nnz <- 0L
+# for (k in seq_len(n)) {
+#   d1 <- game_log2$deck1[k]; d2 <- game_log2$deck2[k]
+#   r  <- make_row(deck_to_cards[[d1]], deck_to_cards[[d2]])
+#   rows_list[[k]] <- r
+#   nnz <- nnz + length(r$idx)
+# }
+# 
+# i <- integer(nnz)
+# j <- integer(nnz)
+# x <- numeric(nnz)
+# pos <- 1L
+# for (k in seq_len(n)) {
+#   r <- rows_list[[k]]
+#   L <- length(r$idx)
+#   if (L > 0) {
+#     rng <- pos:(pos + L - 1L)
+#     i[rng] <- k
+#     j[rng] <- r$idx
+#     x[rng] <- r$vals
+#     pos <- pos + L
+#   }
+# }
+# X_cards <- sparseMatrix(i = i, j = j, x = x, dims = c(n, p),
+#                         dimnames = list(NULL, all_cards))
+# 
+# y <- as.numeric(game_log2$deck1_win)  # 1 if deck1 won, 0 otherwise
+# 
+# # 3) Optional controls (recommended if certain players/archetypes dominate)
+# # --- Player fixed effects (difference-coded: +1 for player as P1, -1 as P2)
+# # Build a column per player id present in any game (drop one to avoid collinearity)
+# all_pids <- sort(unique(c(game_log$player1, game_log$player2)))
+# pid_index <- setNames(seq_along(all_pids), all_pids)
+# 
+# i_pid <- integer(0); j_pid <- integer(0); x_pid <- numeric(0)
+# for (k in seq_len(n)) {
+#   p1 <- as.character(game_log$player1[k])
+#   p2 <- as.character(game_log$player2[k])
+#   if (!is.na(p1) && p1 %in% names(pid_index)) {
+#     i_pid <- c(i_pid, k); j_pid <- c(j_pid, pid_index[[p1]]); x_pid <- c(x_pid,  1)
+#   }
+#   if (!is.na(p2) && p2 %in% names(pid_index)) {
+#     i_pid <- c(i_pid, k); j_pid <- c(j_pid, pid_index[[p2]]); x_pid <- c(x_pid, -1)
+#   }
+# }
+# if (length(all_pids) > 0) {
+#   X_players_full <- sparseMatrix(i = i_pid, j = j_pid, x = x_pid,
+#                                  dims = c(n, length(all_pids)),
+#                                  dimnames = list(NULL, paste0("P_", all_pids)))
+#   # Drop one column to set a reference (avoid perfect collinearity with intercept)
+#   if (ncol(X_players_full) > 0) {
+#     X_players <- X_players_full[, -1, drop = FALSE]
+#   } else {
+#     X_players <- NULL
+#   }
+# } else {
+#   X_players <- NULL
+# }
+# 
+# # (Optional) Archetype difference controls — similar pattern if you have deckInfo$archetype per deckId
+# # Left as extension: cBind more columns just like players.
+# 
+# # 4) Final design matrix: [cards | players (optional)]
+# X <- if (!is.null(X_players)) cbind(X_cards, X_players) else X_cards
+# 
+# # 5) Fit ridge logistic regression
+# set.seed(123)
+# cvfit <- cv.glmnet(X, y, family = "binomial", alpha = 0)  # alpha=0 => ridge
+# # Use a stable lambda (1se) or more aggressive (min)
+# beta  <- as.vector(coef(cvfit, s = "lambda.1se"))
+# beta_names <- rownames(coef(cvfit, s = "lambda.1se"))
+# 
+# # 6) Extract per-card coefficients and convert to Elo-like scale
+# # Logistic Δ -> Elo Δ: multiply by 400*log10(e) ≈ 173.7178
+# ELO_SCALE <- 173.7178
+# 
+# coef_tbl <- tibble(term = beta_names, coef = beta)
+# 
+# card_impact <- coef_tbl %>%
+#   filter(term %in% all_cards) %>%
+#   transmute(
+#     card_name = term,
+#     coef_logit = coef,
+#     elo_like   = coef_logit * ELO_SCALE
+#   ) %>%
+#   arrange(desc(elo_like))
+# 
+# # 7) (Recommended) Quality filters for stability
+# # A card only influences a game if it is present in exactly one of the two decks.
+# # Count those “differential appearances” to filter noisy cards.
+# diff_counts <- map_dfr(seq_len(n), function(k) {
+#   d1 <- game_log2$deck1[k]; d2 <- game_log2$deck2[k]
+#   c1 <- deck_to_cards[[d1]] %||% character(0)
+#   c2 <- deck_to_cards[[d2]] %||% character(0)
+#   both <- intersect(c1, c2)
+#   tibble(card_name = c(setdiff(c1, both), setdiff(c2, both)))
+# }) %>%
+#   count(card_name, name = "diff_games")
+# 
+# card_impact <- card_impact %>%
+#   left_join(diff_counts, by = "card_name") %>%
+#   mutate(diff_games = replace_na(diff_games, 0L)) %>%
+#   filter(diff_games >= 3) 
+
+

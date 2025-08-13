@@ -17,12 +17,14 @@ library(jsonlite)
 library(shinyjs)
 library(DT)
 library(purrr)
+library(stringr)
 
 #setup for the app, data reading, table prep
 #loading data
 decks <- read.csv("Cube_Stats - Deck Info.csv")
 decklists <- read.csv("Cube_Stats - All Decklists.csv", na.strings = c("", "NA"), check.names = FALSE)
 game_log <- read.csv("Cube_Stats - game_log.csv", stringsAsFactors = F)
+game_log2 <- readRDS("game_log2.rds")
 players <- read.csv("Cube_Stats - Players.csv", stringsAsFactors =F)
 dir <- getwd()
 decks$Date <- as.Date(decks$Date, format = "%m/%d/%y")
@@ -43,8 +45,16 @@ binary_matrix <- long_decklists %>%
 #data cleaning
 decks$Deck.ID <- sub("^", "X", decks$Deck.ID)
 
-scryfall_data <- readRDS("scryfall_cards_trimmed.rds")
-card_meta <- scryfall_data %>%
+scryfall_lookup <- readRDS("scryfall_lookup.rds")
+
+nonland_front_faces <- scryfall_lookup %>%
+  filter(!grepl("\\bLand\\b", type_line, ignore.case = TRUE)) %>%
+  mutate(name = str_trim(str_extract(name, "^[^/]+"))) %>%
+  distinct(name) %>%
+  pull(name)
+
+
+card_meta <- scryfall_lookup %>%
   dplyr::filter(name %in% colnames(binary_matrix)) %>%
   dplyr::select(name, type_line)
 
@@ -60,6 +70,8 @@ archWinrates <- readRDS("arch_winrates.rds")
 colorComboWinrates <- readRDS("combo_winrates.rds")
 
 colorWinrates <- readRDS("color_winrates.rds")
+
+deck_cards <- readRDS("deck_cards.rds")
 
 ### Going a step further, create unified result structure
 excluded_names <- c( "Sky", "Gretchen", "Tini", "Shane", "Zeth", "Alex", "Tay","Mack ")
@@ -85,7 +97,6 @@ get_player_media <- function(player_name) {
   
   return(NULL)  #null if nothing found
 }
-
 
 ## ==== Begin UI and Server Functions ==== ##
 
@@ -196,6 +207,28 @@ ui <- fluidPage(theme = shinytheme("slate"),
                                DTOutput("deck_cards")
                              )
                            )
+                  ),
+                  tabPanel(
+                    "Card Stats",
+                    sidebarLayout(
+                      sidebarPanel(
+                        sliderInput("min_games_card", "Minimum games with card:", min = 0, max = 30, value = 5, step = 1),
+                        sliderInput("prior_weight", "Bayesian prior weight (games):", min = 0, max = 30, value = 5, step = 1),
+                        selectInput("sort_cards_by", "Sort by:", 
+                                    choices = c("Shrinkage Winrate" = "shrink_wr",
+                                                "Raw Winrate"       = "raw_wr",
+                                                "Games"             = "games"),
+                                    selected = "shrink_wr"),
+                        selectizeInput("card_pick", "Find a card:", choices = NULL, options = list(placeholder = "Type to search..."))
+                      ),
+                      mainPanel(
+                        h4("Selected Card"),
+                        uiOutput("card_detail"),
+                        hr(),
+                        h4("All Cards (filterable)"),
+                        DTOutput("card_table")
+                      )
+                    )
                   )
                   
                 )
@@ -460,7 +493,7 @@ server <- function(input, output, session) {
     card_names <- decklists[[input$selected_deck]]
     card_names <- na.omit(card_names)
     
-    deck_info <- scryfall_data %>%
+    deck_info <- scryfall_lookup %>%
       filter(name %in% card_names, !grepl("Land", type_line, ignore.case = TRUE)) %>%
       distinct(name, .keep_all = TRUE)  # Deduping here
     
@@ -482,10 +515,8 @@ server <- function(input, output, session) {
     colnames(card_table) <- c("name", "count")
     
     # Join with Scryfall image and details, avoid bad joins here !!!!!
-    scryfall_deduped <- scryfall_data %>%
-      distinct(name, .keep_all = TRUE)
     card_data <- card_table %>%
-      left_join(scryfall_deduped, by = "name") %>%
+      left_join(scryfall_lookup, by = "name") %>%
       select(name, mana_cost, cmc, type_line, image_url)
     
     # Add custom HTML hover tooltips
@@ -531,6 +562,9 @@ server <- function(input, output, session) {
     
     
   })
+  
+
+  
   
   output$player_winrate_plot <- renderPlot({
     ggplot(data = playerWinrates, 
@@ -598,6 +632,146 @@ server <- function(input, output, session) {
         y = "Player Archetype",
         fill = "Winrate"
       )
+  })
+  
+  # Core reactive: per-card winrates with Bayesian shrinkage
+  card_stats <- reactive({
+    req(nonland_cards)  # your earlier vector of non-land cards
+    
+    # Expand games into (card, is_win) rows for both sides
+    cards_deck1 <- game_log2 %>%
+      inner_join(deck_cards, by = c("deck1" = "deckId"), relationship = "many-to-many") %>%
+      transmute(card_name, is_win = deck1_win)
+    
+    cards_deck2 <- game_log2 %>%
+      inner_join(deck_cards, by = c("deck2" = "deckId"), relationship = "many-to-many") %>%
+      transmute(card_name, is_win = !deck1_win)
+    
+    card_games <- bind_rows(cards_deck1, cards_deck2) %>%
+      filter(card_name %in% nonland_front_faces)  # <-- front-face aware
+    
+    if (nrow(card_games) == 0) {
+      return(tibble(card_name = character(), games = integer(), wins = integer(),
+                    raw_wr = numeric(), shrink_wr = numeric()))
+    }
+    
+    overall_wr <- mean(card_games$is_win) # baseline
+    
+    # Summarise & shrink
+    card_wr <- card_games %>%
+      group_by(card_name) %>%
+      summarise(games = n(), wins = sum(is_win), .groups = "drop") %>%
+      mutate(
+        raw_wr    = ifelse(games > 0, wins / games, NA_real_),
+        shrink_wr = (wins + overall_wr * input$prior_weight) / (games + input$prior_weight)
+      )
+    
+    # Join images/meta by front-face partial match (deck names are front face)
+    out <- card_wr %>%
+      left_join(scryfall_lookup, by = c("card_name" = "name"))
+    
+    out
+  })
+  
+  # Populate card selector with filtered list
+  observe({
+    cs <- card_stats()
+    cs <- cs %>% filter(games >= input$min_games_card)
+    updateSelectizeInput(session, "card_pick", choices = sort(cs$card_name), server = TRUE)
+  })
+  
+  # Card detail header (name, games, winrates, image)
+  output$card_detail <- renderUI({
+    cs <- card_stats()
+    req(nrow(cs) > 0)
+    
+    # Pick selected or default to top by chosen sort
+    if (isTruthy(input$card_pick) && input$card_pick %in% cs$card_name) {
+      row <- cs %>% filter(card_name == input$card_pick)
+    } else {
+      metric <- match.arg(input$sort_cards_by, c("shrink_wr", "raw_wr", "games"))
+      row <- cs %>% arrange(dplyr::desc(.data[[metric]])) %>% slice(1)
+    }
+    req(nrow(row) == 1)
+    
+    pretty_wr <- function(x) ifelse(is.na(x), "NA", paste0(round(100*x, 1), "%"))
+    
+    tags$div(
+      style = "display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;",
+      tags$div(
+        style = "min-width:220px;",
+        tags$h3(
+          as.character(row$card_name[[1]]),
+          style = "margin:0 0 6px 0; font-weight:300; color:red;"
+        ),
+        tags$div(paste("Games:", row$games)),
+        tags$div(paste("Wins:", row$wins)),
+        tags$div(paste("Raw Winrate:",  pretty_wr(row$raw_wr))),
+        tags$div(paste("Shrink Winrate:", pretty_wr(row$shrink_wr))),
+        if (!is.na(row$type_line)) tags$div(paste("Type:", row$type_line))
+      ),
+      if (!is.na(row$image_url)) tags$img(
+        src = row$image_url,
+        style = "width:223px; height:310px; border:1px solid #444; border-radius:6px;"
+      )
+    )
+  })
+  
+  # Card table with hover images (hide image_url column)
+  output$card_table <- renderDT({
+    cs <- card_stats() %>% filter(games >= input$min_games_card)
+    
+    # sort the data frame server-side too (nice for the detail panel)
+    metric <- match.arg(input$sort_cards_by, c("shrink_wr", "raw_wr", "games"))
+    cs <- cs %>% arrange(dplyr::desc(.data[[metric]]))
+    
+    tbl <- cs %>%
+      transmute(
+        name = card_name,
+        games, wins,
+        raw_winrate    = ifelse(is.na(raw_wr), NA, round(100*raw_wr, 1)),
+        shrink_winrate = ifelse(is.na(shrink_wr), NA, round(100*shrink_wr, 1)),
+        image_url
+      )
+    
+    # map metric -> DataTables column index (0-based)
+    order_idx <- switch(metric,
+                        "shrink_wr" = 4L,  # shrink_winrate
+                        "raw_wr"    = 3L,  # raw_winrate
+                        "games"     = 1L   # games
+    )
+    
+    datatable(
+      tbl[, c("name", "games", "wins", "raw_winrate", "shrink_winrate", "image_url")],
+      escape = FALSE, rownames = FALSE,
+      options = list(
+        pageLength = 15,
+        order = list(list(order_idx, "desc")),  # <<< key line: initial sort
+        columnDefs = list(
+          list(
+            targets = 0, # name column with hover image
+            render = JS(
+              "function(data, type, row, meta) {",
+              "  if (type === 'display') {",
+              "    return '<div style=\"position:relative; display:inline-block;\">' +",
+              "           data +",
+              "           '<img src=\"' + row[5] + '\" style=\"display:none; position:absolute; top:1.5em; left:0; z-index:1000; width:200px;\" class=\"hover-img\"/>' +",
+              "           '</div>';",
+              "  } else { return data; }",
+              "}"
+            )
+          ),
+          list(targets = 5, visible = FALSE) # hide image_url
+        )
+      ),
+      callback = JS("
+      table.on('mouseenter', 'td', function() {
+        $(this).find('img.hover-img').show();
+      }).on('mouseleave', 'td', function() {
+        $(this).find('img.hover-img').hide();
+      });
+    ")
+    )
   })
   
 }
