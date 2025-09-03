@@ -98,6 +98,56 @@ get_player_media <- function(player_name) {
   return(NULL)  #null if nothing found
 }
 
+
+## ELO Calculation 
+
+elo_update <- function(rating1, rating2, result, k = 32) {
+  # result = 1 if player1 wins, 0 if player2 wins
+  exp1 <- 1 / (1 + 10^((rating2 - rating1) / 400))
+  exp2 <- 1 - exp1
+  r1_new <- rating1 + k * (result - exp1)
+  r2_new <- rating2 + k * ((1 - result) - exp2)
+  list(r1 = r1_new, r2 = r2_new)
+}
+
+calculate_player_elo <- function(game_log, k = 32, init_rating = 1000) {
+  players <- unique(c(game_log$player1, game_log$player2))
+  ratings <- setNames(rep(init_rating, length(players)), players)
+  
+  history <- list()
+  
+  game_log <- game_log %>% arrange(as.Date(date, format = "%m-%d-%y"))
+  
+  for (i in seq_len(nrow(game_log))) {
+    g <- game_log[i, ]
+    p1 <- as.character(g$player1)
+    p2 <- as.character(g$player2)
+    res <- ifelse(g$result == 1, 1, 0)  # 1 if p1 win, else 0
+    
+    upd <- elo_update(ratings[p1], ratings[p2], res, k)
+    ratings[p1] <- upd$r1
+    ratings[p2] <- upd$r2
+    
+    history[[i]] <- data.frame(
+      gameId = g$id,
+      date = g$date,
+      player = c(p1, p2),
+      rating = c(ratings[p1], ratings[p2])
+    )
+  }
+  
+  bind_rows(history)
+}
+elo_history <- calculate_player_elo(game_log)
+elo_history$player <- as.integer(elo_history$player)
+
+current_elo_lookup <- elo_history %>%
+  dplyr::group_by(player) %>%
+  dplyr::slice_tail(n = 1) %>%      # last row per player (history is in order)
+  dplyr::ungroup() %>%
+  dplyr::select(player, rating)
+
+
 ## ==== Begin UI and Server Functions ==== ##
 
 ui <- fluidPage(theme = shinytheme("slate"),
@@ -178,10 +228,13 @@ ui <- fluidPage(theme = shinytheme("slate"),
                            verbatimTextOutput("preferred_colors"),
                            verbatimTextOutput("preferred_archetype"),
                            verbatimTextOutput("worst_matchup"),
+                           verbatimTextOutput("current_elo_chip"),
                            br(),
                            h4("Favorite Cards"),
                            uiOutput("favorite_card_ui"),
                            br(),
+                           h4("Player Elo Over Time"),
+                           plotOutput("elo_plot"),
                            h4("Cumulative Winrate Over Time"),
                            plotOutput("cumulative_plot", height = "300px")
                             )    
@@ -214,6 +267,7 @@ ui <- fluidPage(theme = shinytheme("slate"),
                       sidebarPanel(
                         sliderInput("min_games_card", "Minimum games with card:", min = 0, max = 30, value = 5, step = 1),
                         sliderInput("prior_weight", "Bayesian prior weight (games):", min = 0, max = 30, value = 5, step = 1),
+                        tags$a(href="https://kiwidamien.github.io/shrinkage-and-empirical-bayes-to-improve-inference.html", "Bayesian Shrinkage...?!", style = "color:lightBlue;"), 
                         selectInput("sort_cards_by", "Sort by:", 
                                     choices = c("Shrinkage Winrate" = "shrink_wr",
                                                 "Raw Winrate"       = "raw_wr",
@@ -279,6 +333,21 @@ server <- function(input, output, session) {
       count(Classification, sort = TRUE)
     
     paste("Most Played Archetype:", archetypes$Classification[1])
+  })
+  
+  output$current_elo_chip <- renderText({
+    # use current_elo_lookup() if reactive; otherwise current_elo_lookup
+    df <- if (is.reactive(current_elo_lookup)) current_elo_lookup() else current_elo_lookup
+    req(selected_player_id())
+    pid <- selected_player_id()
+    
+    val <- df %>%
+      dplyr::filter(player == pid) %>%
+      dplyr::pull(rating) %>%
+      tail(1)
+    
+    req(length(val) == 1)
+    paste0("Current Elo: ", round(val))
   })
   
   # Worst winrate opponent
@@ -412,6 +481,21 @@ server <- function(input, output, session) {
     )
   })
   
+  output$elo_plot <- renderPlot({
+    req(selected_player_id())
+    pid <- selected_player_id()
+    df<- left_join(elo_history, players,join_by(player == PlayerId))
+    df <- df %>% filter(player == pid)
+    ggplot(df, aes(x = as.Date(date, format = "%m-%d-%y"), y = rating)) +
+      geom_line(color = "steelblue") +
+      geom_point() +
+      labs(title = paste("Elo rating over time -", df$Name),
+           x = "Date", y = "Elo Rating") +
+      theme_minimal()
+  })
+  
+  
+  
   deck_winrates <- reactive({
     game_log %>%
       pivot_longer(cols = c(deck1, deck2), names_to = "role", values_to = "deck") %>%
@@ -428,16 +512,6 @@ server <- function(input, output, session) {
       left_join(decks, by = c("deck" = "deckID")) %>%
       mutate(label = paste0(PlayerName, ": ", Date, " (", winrate, "% winrate)"))
   })
-  
-  #observe({
-  #  choices <- deck_winrates() %>%
-  #    arrange(desc(winrate))  # highest winrate first
-  #  
-  #  updateSelectInput(
-  #    inputId = "selected_deck",
-  #    choices = setNames(choices$deck, choices$label)
-  #  )
-  #})
   
   observe({
     req(deck_winrates)  #n breaks without this line in here idk why 
@@ -460,7 +534,6 @@ server <- function(input, output, session) {
       choices = setNames(sorted_decks$deck, deck_labels)
     )
   })
-  
   
   output$deck_stats <- renderUI({
     req(input$selected_deck)
@@ -562,9 +635,6 @@ server <- function(input, output, session) {
     
     
   })
-  
-
-  
   
   output$player_winrate_plot <- renderPlot({
     ggplot(data = playerWinrates, 
@@ -773,6 +843,9 @@ server <- function(input, output, session) {
     ")
     )
   })
+  
+ 
+  
   
 }
 

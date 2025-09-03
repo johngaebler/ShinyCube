@@ -57,37 +57,13 @@ decks$Deck.ID <- sub("^", "X", decks$Deck.ID)
 
 # 3. Download the full card list (~40MB)
 #all_cards <- fromJSON(bulk_url)
-#fetch data for cards not showing an image
-no_mana <- scryfall_trimmed[is.na(scryfall_trimmed$mana_cost) & 
-                                    scryfall_trimmed$cmc > 0 ,]
-lapply(na.omit(no_mana$id), function(x) {
-  data <- fromJSON(paste0("https://api.scryfall.com/cards/", x))
-  #print(data$card_faces$image_uris$normal[1])
-  value <- data$card_faces$mana_cost[1]
-
-  scryfall_trimmed$mana_cost[scryfall_trimmed$id == data$id] <<- value
-
-
-})
-
-data <- fromJSON(paste0("https://api.scryfall.com/cards/", "6897514f-e396-46d6-91e3-158366c741bb"))
-print(data$card_faces$image_uris$normal[1])
 
 # Optional: save to local RDS to avoid downloading every time
 #saveRDS(scryfall_data, "C:\\scryfall_cards.rds")
 scryfall_data <- readRDS("C:\\scryfall_cards.rds")
-#scryfall_data$image_url <- scryfall_data$image_uris$normal
-no_image <- scryfall_data[is.na(scryfall_data$image_url),]
-#card_chunks <- split(scryfall_data, ceiling(seq_len(nrow(scryfall_data)) / 35000))
-#saveRDS(card_chunks[[1]], "cards_part1.rds")
-#saveRDS(card_chunks[[2]], "cards_part2.rds")
-#saveRDS(card_chunks[[3]], "cards_part3.rds")
-#saveRDS(card_chunks[[4]], "cards_part4.rds")
+#fetch data for cards not showing an image
 
-#once it is all saved, you can load it like this 
-# scryfall_data <- readRDS("C:\\scryfall_cards.rds")
-
-
+#filter down to cards we care about
 used_card_names <- long_decklists %>%
   distinct(card) %>%
   pull(card)
@@ -98,11 +74,49 @@ pattern <- paste(pattern, collapse = "|")
 
 scryfall_trimmed <- scryfall_data %>%
   filter(str_detect(name, pattern))
-no_image <- scryfall_trimmed[is.na(scryfall_trimmed$image_url),]
-# scryfall_trimmed$image_url <- scryfall_trimmed$image_uris$normal
+scryfall_trimmed$image_url <- scryfall_trimmed$image_uris$normal
 scryfall_trimmed <- scryfall_trimmed %>%
   select(id, name, cmc, type_line, mana_cost, image_url, oracle_text)
 no_image <- scryfall_trimmed[is.na(scryfall_trimmed$image_url),]
+
+no_mana <- scryfall_trimmed[is.na(scryfall_trimmed$mana_cost) & 
+                                    scryfall_trimmed$cmc > 0 ,]
+
+#adding in the mana cost for cards missing it
+lapply(na.omit(no_mana$id), function(x) {
+  data <- fromJSON(paste0("https://api.scryfall.com/cards/", x))
+  #print(data$card_faces$image_uris$normal[1])
+  value <- data$card_faces$mana_cost[1]
+
+  scryfall_trimmed$mana_cost[scryfall_trimmed$id == data$id] <<- value
+
+
+})
+
+#adding in the image_url for cards missing it
+test <- lapply(na.omit(no_image$id), function(x) {
+  data <- fromJSON(paste0("https://api.scryfall.com/cards/", x))
+  
+  value <- data$card_faces$image_uris$normal[1]
+  #print(value)
+  if(!is.null(value )){
+    scryfall_trimmed$image_url[scryfall_trimmed$id == data$id] <<- value
+  }
+})
+
+
+#scryfall_data$image_url <- scryfall_data$image_uris$normal
+#card_chunks <- split(scryfall_data, ceiling(seq_len(nrow(scryfall_data)) / 35000))
+#saveRDS(card_chunks[[1]], "cards_part1.rds")
+#saveRDS(card_chunks[[2]], "cards_part2.rds")
+#saveRDS(card_chunks[[3]], "cards_part3.rds")
+#saveRDS(card_chunks[[4]], "cards_part4.rds")
+
+#once it is all saved, you can load it like this 
+# scryfall_data <- readRDS("C:\\scryfall_cards.rds")
+
+
+
 
 # Step 3: Save this trimmed version
 saveRDS(scryfall_trimmed, "scryfall_cards_trimmed.rds")
