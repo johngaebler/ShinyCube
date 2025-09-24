@@ -72,6 +72,10 @@ used_card_names <- long_decklists %>%
 pattern <- paste0("\\Q", used_card_names, "\\E")
 pattern <- paste(pattern, collapse = "|")
 
+##                !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+## ADD A STEP HERE TO EXCLUDE ART CARDS , card type Card // Card
+##                !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 scryfall_trimmed <- scryfall_data %>%
   filter(str_detect(name, pattern))
 scryfall_trimmed$image_url <- scryfall_trimmed$image_uris$normal
