@@ -74,7 +74,7 @@ colorWinrates <- readRDS("color_winrates.rds")
 deck_cards <- readRDS("deck_cards.rds")
 
 ### Going a step further, create unified result structure
-excluded_names <- c( "Sky", "Gretchen", "Tini", "Shane", "Zeth", "Alex", "Tay","Mack ")
+excluded_names <- c( "Sky", "Gretchen", "Tini", "Shane", "Zeth", "Alex", "Tay","Mack ", 'Asher')
 
 heatmap_data <- readRDS("heatmap_data.rds")
 colnames(heatmap_data) <- c("Player", "Opponent", "Winrate")
@@ -266,7 +266,7 @@ ui <- fluidPage(theme = shinytheme("slate"),
                     sidebarLayout(
                       sidebarPanel(
                         sliderInput("min_games_card", "Minimum games with card:", min = 0, max = 30, value = 5, step = 1),
-                        sliderInput("prior_weight", "Bayesian prior weight (games):", min = 0, max = 30, value = 5, step = 1),
+                        sliderInput("prior_weight", "Bayesian prior weight (games):", min = 5, max = 40, value = 10, step = 1),
                         tags$a(href="https://kiwidamien.github.io/shrinkage-and-empirical-bayes-to-improve-inference.html", "Bayesian Shrinkage...?!", style = "color:lightBlue;"), 
                         selectInput("sort_cards_by", "Sort by:", 
                                     choices = c("Shrinkage Winrate" = "shrink_wr",
@@ -389,7 +389,7 @@ server <- function(input, output, session) {
       )
     
     ggplot(player_games, aes(x = date, y = cum_winrate)) +
-      geom_line(color = "blue", size = 1) +
+      geom_line(color = "blue", linewidth = 1) +
       geom_point(size = 1.5, alpha = 0.7) +
       scale_y_continuous(labels = scales::percent_format(), limits = c(0, 1)) +
       labs(

@@ -132,7 +132,7 @@ card_meta <- scryfall_data %>%
   dplyr::filter(name %in% colnames(binary_matrix)) %>%
   dplyr::select(name, type_line)
 
-scryfall_data <- readRDS("scryfall_cards_trimmed.rds")
+# scryfall_data <- readRDS("scryfall_cards_trimmed.rds")
 
 scryfall_lookup <- scryfall_data %>%
   mutate(name = str_trim(str_extract(name, "^[^/]+"))) %>%
@@ -237,7 +237,7 @@ saveRDS(colorWinrates, "color_winrates.rds")
 colorWinrates <- readRDS("color_winrates.rds")
 
 ### Going a step further, create unified result structure
-excluded_names <- c( "Sky", "Gretchen", "Tini", "Shane", "Zeth", "Alex", "Tay","Mack ")
+excluded_names <- c( "Sky", "Gretchen", "Tini", "Shane", "Zeth", "Alex", "Tay","Mack ", "Asher")
 matches_long <- game_log %>%
   mutate(
     winner_id = case_when(
