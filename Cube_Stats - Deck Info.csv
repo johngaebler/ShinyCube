@@ -1,115 +1,115 @@
 PlayerName,Deck ID,PlayerId,Color Identity,Theme,Classification,Wins,Winrate,Games Played,Date
-John,1,1,BG,Recurring,Midrange,1,0.17,6,12/18/22
-Johnny,2,2,UR,Spellslinger,Aggro,2,0.50,4,12/18/22
-Billy,3,5,WUB,Artifacts,Control,2,0.33,6,12/18/22
-Shane,4,13,WUB,Control,Control,2,0.40,5,12/18/22
-Gretchen,5,3,RG,Stompy,Midrange,4,0.67,6,12/18/22
-Zeth,6,14,UG,Ramp,Midrange,4,0.67,6,12/18/22
-Tini,7,15,W,Weanie,Aggro,4,0.80,5,12/18/22
-John,8,1,UR,Twin Tinker,Combo,5,1.00,5,12/31/23
-Johnny,9,2,RG,Stompy,Midrange,3,0.75,4,12/31/23
 Izzy,10,4,B,Reanimator,Combo,2,0.50,4,12/31/23
-Billy,11,5,WUG,Shit Pile,???,0,0.00,3,12/31/23
-Sky,12,11,WU,Aggro,Aggro,1,0.33,3,12/31/23
-Tyler,13,6,WUG,Tempo,Midrange,1,0.25,4,12/31/23
-John,14,1,U,Control,Control,2,0.50,4,1/5/24
-Izzy,15,4,WUBR,Reanimator,Midrange/Combo,1,0.25,4,1/5/24
-Alex,16,8,BR,Aggro,Aggro,4,1.00,4,1/5/24
-Mack,17,10,WBR,Midrange,Midrange,0,0.00,3,1/5/24
-Tay,18,9,RG,Midrange,Midrange,4,0.80,5,1/5/24
-Tyler,19,6,UG,Tempo,Midrange,1,0.25,4,1/5/24
-John,20,1,UBG,Reanimator,Combo,0,0.00,5,11/15/24
-Johnny,21,2,WBR,Midrange,Midrange,4,0.67,6,11/15/24
-Izzy,22,4,WR,Midrange,Midrange,2,0.50,4,11/15/24
-Billy,23,5,BR,Aggro ,Aggro,4,0.67,6,11/15/24
+Nate,35,12,B,Midrange,Midrange,4,0.8,5,5/23/25
+Izzy,62,4,B,Mono Black,Midrange,2,0.40,5,8/8/25
+John,1,1,BG,Recurring,Midrange,1,0.17,6,12/18/22
 Tyler,24,6,BG,Midrange,Midrange,2,0.33,6,11/15/24
-Sky,25,11,WG,Midrange,Midrange,1,0.25,4,11/15/24
-Nate,26,12,G,Ramp,Midrange,3,0.50,6,11/15/24
-Bruce,27,7,WU,Tempo Control,Control,5,1.00,5,11/15/24
+Tyler,57,6,BG,BG ETB,Midrange/Combo,1,0.25,4,6/28/25
+Tyler,70,6,BG,Black Midrange,Midrange,0,0.00,3,8/30/25
+John,98,1,BG,BG Midrange,Midrange,4,0.80,5,10/15/25
+Izzy,117,4,BG,BG Midrange,Midrange,2,0.40,5,11/28/25
+Ardis,75,18,BG,BG Midrange,Midrange,1,0.33,3,9/5/25
+Alex,16,8,BR,Aggro,Aggro,4,1.00,4,1/5/24
+Billy,23,5,BR,Aggro ,Aggro,4,0.67,6,11/15/24
 John,28,1,BR,Aggro,Aggro,4,1,4,5/15/25
+Tyler,51,6,BR,UR Reanimator,Combo,2,0.40,5,6/14/25
+Johnny,53,2,BR,BR Aggro,Aggro,1,0.33,3,6/28/25
+Izzy,82,4,BR,BR Aggro,Aggro,1,0.33,3,9/17/25
+Kilian,123,20,BR,BR Midrange,Midrange,2,0.50,4,11/28/25
+Nate,26,12,G,Ramp,Midrange,3,0.50,6,11/15/24
+Johnny,47,2,G,Green Ramp,Midrange/Combo,1,0.20,5,6/14/25
+John,52,1,G,Super Ramp,Combo,4,0.80,5,6/28/25
+Nate,65,12,G,Green Ramp,Midrange,3,0.60,5,8/8/25
+Tyler,86,6,G,Green Ramp,Midrange/Combo,1,0.50,2,9/17/25
+Kilian,88,20,G,Green Ramp,Midrange,0,0.00,2,9/17/25
+Izzy,100,4,G,Green Ramp,Midrange/Combo,1,0.25,4,10/15/25
+Nate,104,12,G,Green Stompy,Midrange,3,0.75,4,10/15/25
+Johnny,34,2,R,Aggro,Aggro,5,1,5,5/23/25
+Billy,59,5,R,Aggro,Aggro,0,0.00,2,6/28/25
+Gretchen,5,3,RG,Stompy,Midrange,4,0.67,6,12/18/22
+Johnny,9,2,RG,Stompy,Midrange,3,0.75,4,12/31/23
+Tay,18,9,RG,Midrange,Midrange,4,0.80,5,1/5/24
 Johnny,29,2,RG,Midrange,Midrange,1,0.33,3,5/15/25
+Izzy,36,4,RG,Midrange Ramp,Midrange,1,0.25,4,5/23/25
+John,40,1,RG,Midrange,Midrange,3,1.00,3,6/5/25
+Corolla,79,21,RG,RG aggro,Aggro,2,0.50,4,9/5/25
+Gretchen,124,3,RG,RG Midrang,Midrange,2,0.40,5,11/28/25
+Asher,122,22,UR,Red Aggro Shit,???,1,0.33,3,11/28/25
+John,14,1,U,Control,Control,2,0.50,4,1/5/24
+Izzy,90,4,U,U Artifacts,Midrange,2,0.40,5,10/1/25
 Bruce,30,7,UB,Control,Control,3,0.75,4,5/15/25
 Izzy,31,4,UB,Control,Control,0,0,3,5/15/25
-Nate,32,12,W,Midrange,Midrange,1,0.25,4,5/15/25
-John,33,1,UBG,Control,Control,1,0.25,4,5/23/25
-Johnny,34,2,R,Aggro,Aggro,5,1,5,5/23/25
-Nate,35,12,B,Midrange,Midrange,4,0.8,5,5/23/25
-Izzy,36,4,RG,Midrange Ramp,Midrange,1,0.25,4,5/23/25
-Bruce,37,7,WG,Midrange,Midrange,2,0.5,4,5/23/25
-Tyler,38,6,WU,Tempo,Midrange,1,0.33,3,5/23/25
-Matt,39,16,WB,Midrange,Midrange,0,0.00,2,5/23/25
-John,40,1,RG,Midrange,Midrange,3,1.00,3,6/5/25
 Johnny,41,2,UB,Reanimator Control,Control,1,0.50,2,6/5/25
-Nate,42,12,WUR,Artifact midrange,Midrange,2,0.67,3,6/5/25
-Izzy,43,4,WB,BW midrange,Midrange,1,0.33,3,6/5/25
-Bruce,44,7,WR,Boros aggro,Aggro,1,0.25,4,6/5/25
-Tyler,45,6,WG,WG midrange,Midrange,1,0.33,3,6/5/25
-John,46,1,WBG,Abzan Junk,Midrange,4,0.80,5,6/14/25
-Johnny,47,2,G,Green Ramp,Midrange/Combo,1,0.20,5,6/14/25
-Nate,48,12,WU,Azorius Tempo,Midrange,4,0.80,5,6/14/25
-Izzy,49,4,UR,UR Splinter Twin,Combo,0,0.00,5,6/14/25
 Bruce,50,7,UB,UB Control,Control,3,0.60,5,6/14/25
-Tyler,51,6,BR,UR Reanimator,Combo,2,0.40,5,6/14/25
-John,52,1,G,Super Ramp,Combo,4,0.80,5,6/28/25
-Johnny,53,2,BR,BR Aggro,Aggro,1,0.33,3,6/28/25
 Will,54,17,UB,Reanimator,Combo,3,0.75,4,6/28/25
-Izzy,55,4,URG,Temur Midrange,Midrange,0,0.00,2,6/28/25
-Bruce,56,7,UR,UR Tempo,Midrange,2,0.67,3,6/28/25
-Tyler,57,6,BG,BG ETB,Midrange/Combo,1,0.25,4,6/28/25
-Matt,58,16,W,White Tokens,Midrange,2,0.67,3,6/28/25
-Billy,59,5,R,Aggro,Aggro,0,0.00,2,6/28/25
 John,60,1,UB,UB Artifacts,Midrange/Combo,2,0.40,5,8/8/25
-Johnny,61,2,WU,UW Tempo,Midrange,3,0.60,5,8/8/25
-Izzy,62,4,B,Mono Black,Midrange,2,0.40,5,8/8/25
-Tyler,63,6,WR,WR ETB,Midrange/Combo,4,0.80,5,8/8/25
-Bruce,64,7,UR,Tempo,Midrange,1,0.20,5,8/8/25
-Nate,65,12,G,Green Ramp,Midrange,3,0.60,5,8/8/25
-John,66,1,WUB,Esper Control,Control,3,0.75,4,8/30/25
-Johnny,67,2,UG,Draft anger green,Midrange,4,1.00,4,8/30/25
-Izzy,68,4,UR,UR Splinter Twin,Combo,2,0.50,4,8/30/25
-Matt,69,16,WR,WR Aggro,Aggro,0,0.00,3,8/30/25
-Tyler,70,6,BG,Black Midrange,Midrange,0,0.00,3,8/30/25
-John,71,1,WB ,WB Midrange,Midrange,4,0.80,5,9/5/25
-Johnny,72,2,UR,UR Tinker,Combo,5,1.25,4,9/5/25
-Izzy,73,4,UG,UG Midrange,Midrange,1,0.25,4,9/5/25
-Matt,74,16,UR,UR Splinter Twin,Combo,2,0.50,4,9/5/25
-Ardis,75,18,BG ,BG Midrange,Midrange,1,0.33,3,9/5/25
-Jess,76,19,WR,WR Aggro,Aggro,1,0.33,3,9/5/25
-Kilian,77,20,WUG,Something,Midrange,1,0.33,3,9/5/25
-Billy,78,5,UB ,Reanimator,Combo,2,0.50,4,9/5/25
-Corolla,79,21,RG,RG aggro,Aggro,2,0.50,4,9/5/25
-John,80,1,WB,BW Discard Midrange,Midrange,5,1.00,5,9/17/25
-Johnny,81,2,UBR,UW Splinter Twin,Combo,0,0.00,2,9/17/25
-Izzy,82,4,BR,BR Aggro,Aggro,1,0.33,3,9/17/25
-Billy,83,5,WB,WB Midrange,Midrange,1,0.20,5,9/17/25
-Ardis,84,18,WR,WR Aggro,Midrange,2,0.67,3,9/17/25
-Jess,85,19,UW,WU Midrange,Midrange,2,0.67,3,9/17/25
-Tyler,86,6,G,Green Ramp,Midrange/Combo,1,0.50,2,9/17/25
-Corolla,87,21,UW,WU Midrange,Midrange,2,0.67,3,9/17/25
-Kilian,88,20,G,Green Ramp,Midrange,0,0.00,2,9/17/25
-John,89,1,UBRG,5C Sovereigns Realm,Midrange,4,0.67,6,10/1/25
-Izzy,90,4,U,U Artifacts,Midrange,2,0.40,5,10/1/25
-Matt,91,16,W,W Weanie,Aggro,5,0.83,6,10/1/25
-Ardis,92,18,WBR,WBR Midrange,Midrange,3,0.50,6,10/1/25
-Jess,93,19,WB,WB Midrange,Midrange,3,0.50,6,10/1/25
-Kilian,94,20,UR,UR Midrange,Midrange,3,0.50,6,10/1/25
-Bruce,95,7,WUB,WUB Control,Control,1,0.20,5,10/1/25
-Tyler,96,6,URG,URG Midrange,Midrange,2,0.33,6,10/1/25
-Nate,97,12,UG ,UG Midrange,Midrange,5,0.83,6,10/1/25
-John,98,1,BG,BG Midrange,Midrange,4,0.80,5,10/15/25
-Johnny,99,2,WG,WG Midrange,Midrange,0,0.00,3,10/15/25
-Izzy,100,4,G,Green Ramp,Midrange/Combo,1,0.25,4,10/15/25
-Ardis,101,18,UG,UG Midrange,Midrange,1,0.25,4,10/15/25
-Bruce,102,7,WR,WR Aggro,Aggro,2,0.50,4,10/15/25
-Tyler,103,6,UR ,UR Splinter Twin,Combo,3,0.75,4,10/15/25
-Nate,104,12,G,Green Stompy,Midrange,3,0.75,4,10/15/25
+Billy,78,5,UB,Reanimator,Combo,2,0.50,4,9/5/25
+Johnny,116,2,UB,UB Tinker,Combo,2,1.00,2,11/28/25
+John,20,1,UBG,Reanimator,Combo,0,0.00,5,11/15/24
+John,33,1,UBG,Control,Control,1,0.25,4,5/23/25
 John,115,1,UBG,Graveyard Combo,Combo,3,0.75,4,11/28/25
-Johnny,116,2,UB ,UB Tinker,Combo,2,1.00,2,11/28/25
-Izzy,117,4,BG,BG Midrange,Midrange,2,0.40,5,11/28/25
-Will,118,17,WR,WR Aggro,Aggro,3,0.60,5,11/28/25
+Johnny,81,2,UBR,UW Splinter Twin,Combo,0,0.00,2,9/17/25
+John,89,1,UBRG,5C Sovereigns Realm,Midrange,4,0.67,6,10/1/25
+Zeth,6,14,UG,Ramp,Midrange,4,0.67,6,12/18/22
+Tyler,19,6,UG,Tempo,Midrange,1,0.25,4,1/5/24
+Johnny,67,2,UG,Draft anger green,Midrange,4,1.00,4,8/30/25
+Izzy,73,4,UG,UG Midrange,Midrange,1,0.25,4,9/5/25
+Ardis,101,18,UG,UG Midrange,Midrange,1,0.25,4,10/15/25
+Nate,97,12,UG,UG Midrange,Midrange,5,0.83,6,10/1/25
+Johnny,2,2,UR,Spellslinger,Aggro,2,0.50,4,12/18/22
+John,8,1,UR,Twin Tinker,Combo,5,1.00,5,12/31/23
+Izzy,49,4,UR,UR Splinter Twin,Combo,0,0.00,5,6/14/25
+Bruce,56,7,UR,UR Tempo,Midrange,2,0.67,3,6/28/25
+Bruce,64,7,UR,Tempo,Midrange,1,0.20,5,8/8/25
+Izzy,68,4,UR,UR Splinter Twin,Combo,2,0.50,4,8/30/25
+Johnny,72,2,UR,UR Tinker,Combo,5,1.25,4,9/5/25
+Matt,74,16,UR,UR Splinter Twin,Combo,2,0.50,4,9/5/25
+Kilian,94,20,UR,UR Midrange,Midrange,3,0.50,6,10/1/25
+Tyler,103,6,UR,UR Splinter Twin,Combo,3,0.75,4,10/15/25
+Izzy,55,4,URG,Temur Midrange,Midrange,0,0.00,2,6/28/25
+Tyler,96,6,URG,URG Midrange,Midrange,2,0.33,6,10/1/25
+Jess,85,19,UW,WU Midrange,Midrange,2,0.67,3,9/17/25
+Corolla,87,21,UW,WU Midrange,Midrange,2,0.67,3,9/17/25
+Tini,7,15,W,Weanie,Aggro,4,0.80,5,12/18/22
+Nate,32,12,W,Midrange,Midrange,1,0.25,4,5/15/25
+Matt,58,16,W,White Tokens,Midrange,2,0.67,3,6/28/25
+Matt,91,16,W,W Weanie,Aggro,5,0.83,6,10/1/25
 Corolla,119,21,W,W Aggro,Aggro,1,0.33,3,11/28/25
-Ardis,120,18,WUBRG,Sov Realm,Midrange,1,0.50,2,11/28/25
+Matt,39,16,WB,Midrange,Midrange,0,0.00,2,5/23/25
+Izzy,43,4,WB,BW midrange,Midrange,1,0.33,3,6/5/25
+John,80,1,WB,BW Discard Midrange,Midrange,5,1.00,5,9/17/25
+Billy,83,5,WB,WB Midrange,Midrange,1,0.20,5,9/17/25
+Jess,93,19,WB,WB Midrange,Midrange,3,0.50,6,10/1/25
 Jess,121,19,WB,WB Midrange,Midrange,1,0.33,3,11/28/25
-Asher,122,22,RU ,Red Aggro Shit,???,1,0.33,3,11/28/25
-Kilian,123,20,BR ,BR Midrange,Midrange,2,0.50,4,11/28/25
-Gretchen,124,3,RG,RG Midrang,Midrange,2,0.40,5,11/28/25
+John,71,1,WB,WB Midrange,Midrange,4,0.80,5,9/5/25
+John,46,1,WBG,Abzan Junk,Midrange,4,0.80,5,6/14/25
+Mack,17,10,WBR,Midrange,Midrange,0,0.00,3,1/5/24
+Johnny,21,2,WBR,Midrange,Midrange,4,0.67,6,11/15/24
+Ardis,92,18,WBR,WBR Midrange,Midrange,3,0.50,6,10/1/25
+Sky,25,11,WG,Midrange,Midrange,1,0.25,4,11/15/24
+Bruce,37,7,WG,Midrange,Midrange,2,0.5,4,5/23/25
+Tyler,45,6,WG,WG midrange,Midrange,1,0.33,3,6/5/25
+Johnny,99,2,WG,WG Midrange,Midrange,0,0.00,3,10/15/25
+Izzy,22,4,WR,Midrange,Midrange,2,0.50,4,11/15/24
+Bruce,44,7,WR,Boros aggro,Aggro,1,0.25,4,6/5/25
+Tyler,63,6,WR,WR ETB,Midrange/Combo,4,0.80,5,8/8/25
+Matt,69,16,WR,WR Aggro,Aggro,0,0.00,3,8/30/25
+Jess,76,19,WR,WR Aggro,Aggro,1,0.33,3,9/5/25
+Ardis,84,18,WR,WR Aggro,Midrange,2,0.67,3,9/17/25
+Bruce,102,7,WR,WR Aggro,Aggro,2,0.50,4,10/15/25
+Will,118,17,WR,WR Aggro,Aggro,3,0.60,5,11/28/25
+Sky,12,11,WU,Aggro,Aggro,1,0.33,3,12/31/23
+Bruce,27,7,WU,Tempo Control,Control,5,1.00,5,11/15/24
+Tyler,38,6,WU,Tempo,Midrange,1,0.33,3,5/23/25
+Nate,48,12,WU,Azorius Tempo,Midrange,4,0.80,5,6/14/25
+Johnny,61,2,WU,UW Tempo,Midrange,3,0.60,5,8/8/25
+Billy,3,5,WUB,Artifacts,Control,2,0.33,6,12/18/22
+Shane,4,13,WUB,Control,Control,2,0.40,5,12/18/22
+John,66,1,WUB,Esper Control,Control,3,0.75,4,8/30/25
+Bruce,95,7,WUB,WUB Control,Control,1,0.20,5,10/1/25
+Izzy,15,4,WUBR,Reanimator,Midrange/Combo,1,0.25,4,1/5/24
+Ardis,120,18,WUBRG,Sov Realm,Midrange,1,0.50,2,11/28/25
+Billy,11,5,WUG,Shit Pile,???,0,0.00,3,12/31/23
+Tyler,13,6,WUG,Tempo,Midrange,1,0.25,4,12/31/23
+Kilian,77,20,WUG,Something,Midrange,1,0.33,3,9/5/25
+Nate,42,12,WUR,Artifact midrange,Midrange,2,0.67,3,6/5/25
