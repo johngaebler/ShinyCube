@@ -371,17 +371,17 @@ message("data_update.R: artifacts written successfully.")
 #     pull(download_uri)
 #   all_cards <- fromJSON(bulk_url)
 #   saveRDS(all_cards, SCRYFALL_BULK_PATH)
-#
+# 
 #   scryfall_data <- readRDS(SCRYFALL_BULK_PATH)
 #   used_card_names <- long_decklists %>% distinct(card) %>% pull(card)
 #   pattern <- paste(paste0("\\Q", used_card_names, "\\E"), collapse = "|")
-#
+# 
 #   scryfall_trimmed <- scryfall_data %>%
 #     filter(str_detect(name, pattern))
 #   scryfall_trimmed$image_url <- scryfall_trimmed$image_uris$normal
 #   scryfall_trimmed <- scryfall_trimmed %>%
 #     select(id, name, cmc, type_line, mana_cost, image_url, oracle_text)
-#
+# 
 #   # Backfill mana_cost / image_url for double-faced cards by hitting the API
 #   no_mana <- scryfall_trimmed %>% filter(is.na(mana_cost), cmc > 0)
 #   for (cid in na.omit(no_mana$id)) {
@@ -391,7 +391,7 @@ message("data_update.R: artifacts written successfully.")
 #       scryfall_trimmed$mana_cost[scryfall_trimmed$id == d$id] <- d$card_faces$mana_cost[1]
 #     }
 #   }
-#
+# 
 #   no_image <- scryfall_trimmed %>% filter(is.na(image_url))
 #   for (cid in na.omit(no_image$id)) {
 #     d <- tryCatch(fromJSON(paste0("https://api.scryfall.com/cards/", cid)),
@@ -400,6 +400,6 @@ message("data_update.R: artifacts written successfully.")
 #       scryfall_trimmed$image_url[scryfall_trimmed$id == d$id] <- d$card_faces$image_uris$normal[1]
 #     }
 #   }
-#
+# 
 #   saveRDS(scryfall_trimmed, "scryfall_cards_trimmed.rds")
 # }
